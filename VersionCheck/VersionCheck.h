@@ -11,7 +11,12 @@
 
 @interface VersionCheck : NSObject
 
-- (id)initWithCheckURL:(NSString*)url;
-- (void) versionCheck;
+// シングルトン
++ (VersionCheck*)sharedManager;
+
+// アクセスURL設定
+- (void)setURL:(NSString*)url;
+- (void)versionCheck;
+- (void)closeAlert;
 
 @end

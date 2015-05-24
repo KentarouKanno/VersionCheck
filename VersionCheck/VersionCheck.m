@@ -8,8 +8,14 @@
 
 #import "VersionCheck.h"
 
+static VersionCheck *sharedData_ = nil;
+
 
 @interface VersionCheck() <UIAlertViewDelegate>
+{
+    UIAlertView *alert1;
+    UIAlertController *alert2;
+}
 
 @property (nonatomic) NSString *accessURL;
 
@@ -22,16 +28,32 @@
 
 @implementation VersionCheck
 
-- (id)initWithCheckURL:(NSString*)url {
+
++ (VersionCheck*)sharedManager {
+    @synchronized(self){
+        if (!sharedData_) {
+            sharedData_ = [VersionCheck new];
+        }
+    }
+    return sharedData_;
+}
+
+- (id)init
+{
     self = [super init];
-    if(self) {
-        _accessURL = url;
+    if (self) {
         
     }
     return self;
 }
 
+- (void)setURL:(NSString*)url {
+     _accessURL = url;
+}
+
 -(void) versionCheck {
+    
+    [self closeAlert];
 
     NSURL* myURL = [NSURL URLWithString:_accessURL];
     NSURLRequest* myRequest = [NSURLRequest requestWithURL:myURL];
@@ -77,15 +99,15 @@
 
 - (void) showAlert {
     
-    if (![UIAlertController class]) {
+    if ([UIAlertController class]) {
         
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:_alertTitle message:_alertBody preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"DownLoad Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        alert2 = [UIAlertController alertControllerWithTitle:_alertTitle message:_alertBody preferredStyle:UIAlertControllerStyleAlert];
+        [alert2 addAction:[UIAlertAction actionWithTitle:@"DownLoad Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             
             [self openStore];
         }]];
         
-        [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [alert2 addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             
         }]];
         
@@ -94,16 +116,16 @@
         while (baseView.presentedViewController != nil && !baseView.presentedViewController.isBeingDismissed) {
             baseView = baseView.presentedViewController;
         }
-        [baseView presentViewController:alert animated:YES completion:nil];
+        [baseView presentViewController:alert2 animated:YES completion:nil];
         
     } else {
         
-        UIAlertView *alert = [[UIAlertView alloc]initWithTitle:_alertTitle
+        alert1 = [[UIAlertView alloc]initWithTitle:_alertTitle
                                                        message:_alertBody
                                                       delegate:self
                                              cancelButtonTitle:@"Cancel"
                                              otherButtonTitles:@"DownLoad Now", nil];
-        [alert show];
+        [alert1 show];
     }
 }
 
@@ -122,6 +144,22 @@
     if (alertView.cancelButtonIndex != buttonIndex) {
         [self openStore];
     }
+}
+
+- (void)closeAlert {
+    if (alert1) {
+        [alert1 dismissWithClickedButtonIndex:alert1.cancelButtonIndex animated:NO];
+        alert1 = nil;
+    }
+    
+    if (alert2) {
+        [alert2 dismissViewControllerAnimated:NO completion:nil];
+        alert2 = nil;
+    }
+}
+
+- (void)dealloc {
+    [self closeAlert];
 }
 
 @end

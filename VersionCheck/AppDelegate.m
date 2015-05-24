@@ -26,9 +26,12 @@
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     
-    ver = [[VersionCheck alloc]initWithCheckURL:@"jsonデータを取得するURLを記述"];
-    [ver versionCheck];
+     [self performSelector:@selector(versionChech) withObject:nil afterDelay:1.0];
 }
 
+- (void)versionChech {
+    [[VersionCheck sharedManager] setURL:@"jsonデータを取得するURLを記述"];
+    [[VersionCheck sharedManager] versionCheck];
+}
 
 @end
